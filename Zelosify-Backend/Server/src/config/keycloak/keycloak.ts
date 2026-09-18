@@ -55,15 +55,15 @@ export async function setupKeycloakConfig() {
       });
     };
 
-    // Test the connection
+    // Test the connection (graceful fallback to local JWT mode if Keycloak is not running)
     try {
       await axios.get(
-        `${KEYCLOAK_URL}/realms/${REALM_NAME}/.well-known/openid-configuration`
+        `${KEYCLOAK_URL}/realms/${REALM_NAME}/.well-known/openid-configuration`,
+        { timeout: 1500 }
       );
       console.log("✅ Connected to Keycloak Server");
     } catch (error) {
-      console.error("❌ Failed to connect to Keycloak server:", error);
-      throw new Error("Failed to connect to Keycloak server");
+      console.warn("⚠️ Keycloak server not reachable at " + KEYCLOAK_URL + ". Falling back to local JWT authentication.");
     }
 
     return { keycloak: keycloakInstance, memoryStore };

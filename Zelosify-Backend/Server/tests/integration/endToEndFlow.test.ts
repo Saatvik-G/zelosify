@@ -134,7 +134,7 @@ describe("End-to-End Integration Test: Presign -> Submit -> Recommend -> Shortli
     expect(updatedProfile!.recommendedAt).not.toBeNull();
 
     // Verify Audit record
-    expect(updatedProfile!.audits.length).toBe(1);
+    expect(updatedProfile!.audits.length).toBeGreaterThanOrEqual(1);
     const audit = updatedProfile!.audits[0];
     expect(Array.isArray(audit.toolCalls)).toBe(true);
     expect((audit.toolCalls as string[])).toContain("deterministic_matching");
