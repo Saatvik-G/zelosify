@@ -30,7 +30,9 @@ export const getRoleRedirectPath = (role) => {
     case "BUSINESS_USER":
       return "/business-user/digital-initiative";
     case "IT_VENDOR":
-      return "/vendor/payments";
+      return "/vendor/openings";
+    case "HIRING_MANAGER":
+      return "/hiring-manager/openings";
     default:
       return "/login"; // Let middleware handle it
   }

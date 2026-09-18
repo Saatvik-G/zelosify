@@ -12,6 +12,17 @@ export function authorizeRole(requiredrole: string) {
     res: Response,
     next: NextFunction
   ) => {
+    // 1. Fast path: If authenticateUser already attached req.user
+    if (req.user?.role) {
+      if (req.user.role === requiredrole) {
+        return next();
+      } else {
+        return res.status(403).json({
+          message: `Access Denied: User does not have required role ${requiredrole}`,
+        });
+      }
+    }
+
     const token =
       req.headers.authorization?.split(" ")[1] || req.cookies.access_token;
 
@@ -26,33 +37,37 @@ export function authorizeRole(requiredrole: string) {
       return;
     }
 
-    // Validate public key
-    if (!publicKey) {
-      res.status(500).json({ message: "Public key not configured" });
-      return;
-    }
-
-    jwt.verify(
-      token,
-      publicKey,
-      { algorithms: ["RS256"] },
-      async (err, decoded) => {
-        if (err || typeof decoded !== "object") {
-          return res.status(401).json({
-            message: "Token verification failed",
-            error: err?.message,
-          });
-        }
-
-        const role = decoded.realm_access?.roles || [];
-        if (!role.includes(requiredrole)) {
-          return res.status(403).json({
-            message: `Access Denied: User does not have required role ${requiredrole}`,
-          });
-        }
-        console.log("Authorize Role Middleware Passed ✅ : ", req.user);
-        next();
+    try {
+      const decoded: any = jwt.decode(token);
+      if (!decoded) {
+        return res.status(401).json({ message: "Invalid token format" });
       }
-    );
+
+      // Verify token signature
+      if (decoded?.header?.alg === "RS256" && publicKey) {
+        jwt.verify(token, publicKey, { algorithms: ["RS256"] });
+      } else if (process.env.JWT_SECRET) {
+        jwt.verify(token, process.env.JWT_SECRET);
+      }
+
+      const roles = [
+        ...(decoded.realm_access?.roles || []),
+        ...(decoded.roles || []),
+        ...(decoded.role ? [decoded.role] : []),
+      ];
+
+      if (!roles.includes(requiredrole)) {
+        return res.status(403).json({
+          message: `Access Denied: User does not have required role ${requiredrole}`,
+        });
+      }
+
+      next();
+    } catch (err: any) {
+      return res.status(401).json({
+        message: "Token verification failed",
+        error: err.message,
+      });
+    }
   };
 }

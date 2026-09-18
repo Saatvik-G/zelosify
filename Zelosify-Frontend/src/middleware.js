@@ -74,8 +74,12 @@ export function middleware(request) {
         );
 
       case "IT_VENDOR":
-        console.log(`Redirecting IT_VENDOR to /vendor/payments`);
-        return NextResponse.redirect(new URL("/vendor/payments", request.url));
+        console.log(`Redirecting IT_VENDOR to /vendor/openings`);
+        return NextResponse.redirect(new URL("/vendor/openings", request.url));
+
+      case "HIRING_MANAGER":
+        console.log(`Redirecting HIRING_MANAGER to /hiring-manager/openings`);
+        return NextResponse.redirect(new URL("/hiring-manager/openings", request.url));
 
       default:
         // Fallback for unknown roles or missing role - redirect to base user page
@@ -89,6 +93,15 @@ export function middleware(request) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // UI Route Guards: Enforce role-based access to routes
+  if (path.startsWith("/hiring-manager") && userRole && userRole !== "HIRING_MANAGER") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (path.startsWith("/vendor") && userRole && userRole !== "IT_VENDOR") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   return response;
 }
 
@@ -98,6 +111,7 @@ export const config = {
     // Protected routes
     "/user/:path*",
     "/vendor/:path*",
+    "/hiring-manager/:path*",
     "/business-user/:path*",
 
     // Public paths for redirect logic
