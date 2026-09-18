@@ -21,11 +21,8 @@ export const extractRoleFromToken = (token) => {
   if (!token) return null;
 
   const decoded = decodeJwt(token);
-  if (!decoded || !decoded.realm_access || !decoded.realm_access.roles) {
-    return null;
-  }
+  if (!decoded) return null;
 
-  // Define business roles in an array for easy extensibility
   const businessRolesList = [
     "ADMIN",
     "VENDOR_MANAGER",
@@ -37,10 +34,18 @@ export const extractRoleFromToken = (token) => {
     "PROCUREMENT_MANAGER",
   ];
 
-  // Filter roles based on the defined list
-  const businessRoles = decoded.realm_access.roles.filter((role) =>
-    businessRolesList.includes(role)
-  );
+  // 1. Direct role claim (Local JWT)
+  if (decoded.role && businessRolesList.includes(decoded.role)) {
+    return decoded.role;
+  }
 
-  return businessRoles.length > 0 ? businessRoles[0] : null;
+  // 2. Keycloak realm_access.roles
+  if (decoded.realm_access && Array.isArray(decoded.realm_access.roles)) {
+    const businessRoles = decoded.realm_access.roles.filter((role) =>
+      businessRolesList.includes(role)
+    );
+    if (businessRoles.length > 0) return businessRoles[0];
+  }
+
+  return null;
 };

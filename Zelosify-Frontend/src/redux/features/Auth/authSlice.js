@@ -6,10 +6,12 @@ import { clearAuthData } from "@/utils/Auth/authUtils";
 const loadUserFromStorage = () => {
   if (typeof window === "undefined") return null; // Handle SSR
   try {
-    const storedUser = localStorage.getItem("zelosify_user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    if (typeof localStorage !== "undefined" && typeof localStorage.getItem === "function") {
+      const storedUser = localStorage.getItem("zelosify_user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    }
+    return null;
   } catch (error) {
-    console.error("Error loading user from localStorage:", error);
     return null;
   }
 };
@@ -17,14 +19,14 @@ const loadUserFromStorage = () => {
 const saveUserToStorage = (user) => {
   if (typeof window === "undefined") return; // Handle SSR
   try {
-    if (user) {
-      localStorage.setItem("zelosify_user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("zelosify_user");
+    if (typeof localStorage !== "undefined") {
+      if (user && typeof localStorage.setItem === "function") {
+        localStorage.setItem("zelosify_user", JSON.stringify(user));
+      } else if (typeof localStorage.removeItem === "function") {
+        localStorage.removeItem("zelosify_user");
+      }
     }
-  } catch (error) {
-    console.error("Error saving user to localStorage:", error);
-  }
+  } catch (error) {}
 };
 
 const initialState = {

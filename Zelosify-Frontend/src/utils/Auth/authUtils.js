@@ -53,13 +53,21 @@ export const handleRoleBasedRedirect = (role) => {
  * Clear all authentication data (cookies and localStorage)
  */
 export const clearAuthData = () => {
-  // Clear cookies
-  document.cookie =
-    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie =
-    "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  if (typeof window === "undefined") return;
+
+  try {
+    // Clear cookies
+    document.cookie =
+      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  } catch (e) {}
 
   // Clear localStorage
-  localStorage.removeItem("zelosify_user");
+  try {
+    if (typeof localStorage !== "undefined" && typeof localStorage.removeItem === "function") {
+      localStorage.removeItem("zelosify_user");
+    }
+  } catch (e) {}
 };

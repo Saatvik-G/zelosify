@@ -111,6 +111,20 @@ router.get(
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    res.cookie("refresh_token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("role", user.role, {
+      httpOnly: false,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const redirectPath = roleParam === "HIRING_MANAGER" ? "/hiring-manager/openings" : "/vendor/openings";
     res.redirect(`${frontendUrl}${redirectPath}`);

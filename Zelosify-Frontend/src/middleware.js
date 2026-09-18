@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { extractRoleFromToken } from "@/utils/Auth/middlewareUtils";
 
+if (
+  typeof globalThis.localStorage !== "undefined" &&
+  typeof globalThis.localStorage.getItem !== "function"
+) {
+  globalThis.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {},
+    key: () => null,
+    length: 0,
+  };
+}
+
 export function middleware(request) {
   // Get the pathname of the request
   const path = request.nextUrl.pathname;
@@ -17,8 +31,8 @@ export function middleware(request) {
   const refreshToken = request.cookies.get("refresh_token")?.value;
   const registrationToken = request.cookies.get("registration_token")?.value;
 
-  // A user is considered authenticated if they have BOTH tokens
-  const isAuthenticated = !!accessToken && !!refreshToken;
+  // A user is considered authenticated if they have an access token
+  const isAuthenticated = !!accessToken;
   // A user is in registration process if they have the special token
   const isRegistering = !!registrationToken;
 

@@ -10,6 +10,21 @@ export const metadata = {
   },
 };
 
+// Shim uninitialized Node.js 22/25 experimental localStorage to prevent SSR crashes
+if (
+  typeof globalThis.localStorage !== "undefined" &&
+  typeof globalThis.localStorage.getItem !== "function"
+) {
+  globalThis.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {},
+    key: () => null,
+    length: 0,
+  };
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
